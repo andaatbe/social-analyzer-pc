@@ -572,14 +572,17 @@ Responde SOLO con el JSON, sin texto adicional.`;
       })
     });
 
-    if (!res.ok) throw new Error('Error en Claude API: ' + res.status);
+    if (!res.ok) {
+      const errData = await res.json().catch(()=>({}));
+      throw new Error(`Claude API ${res.status}: ${errData.error?.message || JSON.stringify(errData)}`);
+    }
     const data = await res.json();
     const text = data.content[0].text;
     const clean = text.replace(/```json|```/g,'').trim();
     const report = JSON.parse(clean);
     renderReport(report);
   } catch(e) {
-    console.error('Claude analysis error:', e);
+    showError('Error en análisis Claude: ' + e.message);
   }
 }
 
