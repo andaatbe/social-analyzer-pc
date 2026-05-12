@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Social Analyzer — Herramienta Interna</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --bg2: #161618;
+    --bg3: #1e1e21;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --accent: #e8ff47;
+    --accent2: #b8cc2a;
+    --ig: #e1306c;
+    --tt: #fe2c55;
+    --fb: #1877f2;
+    --yt: #ff0000;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .api-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    transition: border-color 0.2s;
+  }
+  .api-badge:hover { border-color: var(--border2); color: var(--text2); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  /* ── MAIN ── */
+  main { max-width: 900px; margin: 0 auto; padding: 60px 40px 120px; }
+
+  /* ── HERO ── */
+  .hero { margin-bottom: 56px; }
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p { font-size: 15px; color: var(--text2); max-width: 480px; }
+
+  /* ── PLATFORM TABS ── */
+  .platform-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { border-color: var(--border2); color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #0e0e0f; border-color: var(--accent); }
+  .tab-btn svg { width: 16px; height: 16px; }
+
+  /* ── SEARCH BOX ── */
+  .search-area {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 32px;
+    transition: border-color 0.2s;
+  }
+  .search-area:focus-within { border-color: var(--border2); }
+  .search-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .platform-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .platform-icon svg { width: 18px; height: 18px; }
+  .platform-icon.ig { background: rgba(225,48,108,0.15); }
+  .platform-icon.tt { background: rgba(254,44,85,0.15); }
+  .platform-icon.fb { background: rgba(24,119,242,0.15); }
+  .platform-icon.yt { background: rgba(255,0,0,0.15); }
+  .search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    placeholder-color: var(--text3);
+  }
+  .search-input::placeholder { color: var(--text3); }
+  .run-btn {
+    background: var(--accent);
+    color: #0e0e0f;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0 20px;
+    height: 40px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .run-btn:hover { background: var(--accent2); }
+  .run-btn:active { transform: scale(0.97); }
+  .run-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .hint { font-size: 12px; color: var(--text3); margin-top: 10px; font-family: 'DM Mono', monospace; }
+
+  /* ── STATUS ── */
+  .status-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+  .status-bar.active { display: flex; }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── ERROR ── */
+  .error-bar {
+    display: none;
+    padding: 14px 18px;
+    background: rgba(255,80,80,0.06);
+    border: 1px solid rgba(255,80,80,0.2);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: #ff7070;
+    font-family: 'DM Mono', monospace;
+  }
+  .error-bar.active { display: block; }
+
+  /* ── RESULTS ── */
+  #results { display: none; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
+
+  /* ── METRICS ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .metric-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .metric-card .m-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .metric-card .m-value {
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .metric-card .m-value span { font-size: 13px; color: var(--text3); margin-left: 2px; }
+
+  /* ── INSIGHT ── */
+  .insight-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 32px;
+  }
+  .insight-card .i-title {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+  .insight-card p { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 6px; }
+  .insight-card p:last-child { margin: 0; }
+  .insight-card strong { color: var(--text); font-weight: 500; }
+
+  /* ── TABLE ── */
+  .section-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+  .table-wrap { overflow-x: auto; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+  .caption-cell { color: var(--text); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-weight: 500;
+  }
+  .b-post { background: rgba(232,255,71,0.1); color: var(--accent); }
+  .b-reel { background: rgba(225,48,108,0.12); color: #ff6b9d; }
+  .b-video { background: rgba(254,44,85,0.12); color: #fe6b85; }
+  .b-hi { background: rgba(80,220,100,0.12); color: #6de080; }
+  .b-med { background: rgba(255,190,60,0.12); color: #ffbe3c; }
+  .b-lo { background: rgba(255,100,100,0.12); color: #ff7070; }
+
+  /* ── ACTIONS ── */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .action-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { border-color: var(--border2); color: var(--text); background: var(--bg2); }
+  .action-btn.primary { background: var(--accent); color: #0e0e0f; border-color: var(--accent); }
+  .action-btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+  .action-btn svg { width: 15px; height: 15px; }
+
+  /* ── API MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    width: 440px;
+    max-width: 90vw;
+  }
+  .modal h2 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
+  .modal input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    margin-bottom: 14px;
+  }
+  .modal input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-cancel {
+    background: transparent; border: 1px solid var(--border); color: var(--text2);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: var(--radius); cursor: pointer;
+  }
+  .modal-save {
+    background: var(--accent); color: #0e0e0f; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: var(--radius); cursor: pointer;
+  }
+
+  /* ── HISTORY SIDEBAR hint ── */
+  .history-row {
+    display: flex; gap: 10px; margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .hist-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 100px;
+    border: 1px solid var(--border);
+    font-size: 12px; color: var(--text3);
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+  .hist-chip:hover { border-color: var(--border2); color: var(--text2); }
+  .hist-chip .plat-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+  @media (max-width: 600px) {
+    main { padding: 40px 20px 80px; }
+    header { padding: 0 20px; }
+    .hero h1 { font-size: 28px; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Social Analyzer</div>
+  <div class="api-badge" onclick="openModal()">
+    <div class="dot" style="background:var(--text3)"></div>
+    <span id="api-status">Configurar API</span>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Analiza cualquier<br/><em>cuenta social</em></h1>
+    <p>Ingresa el handle de una cuenta y obtén métricas de contenido, engagement y patrones de performance automáticamente.</p>
+  </div>
+
+  <!-- Platform tabs -->
+  <div class="platform-tabs">
+    <button class="tab-btn active" data-platform="instagram" onclick="selectPlatform('instagram', this)">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#e1306c" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="#e1306c" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="#e1306c"/></svg>
+      Instagram
+    </button>
+    <button class="tab-btn" data-platform="tiktok" onclick="selectPlatform('tiktok', this)">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="#fe2c55" stroke-width="1.8"/><path d="M10 12a3 3 0 100 6 3 3 0 000-6zm0 0V7.5M13.5 7.5c.5 2 2 3 3.5 3" stroke="#fe2c55" stroke-width="1.8" stroke-linecap="round"/></svg>
+      TikTok
+    </button>
+    <button class="tab-btn" data-platform="facebook" onclick="selectPlatform('facebook', this)">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M18 2H15a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" stroke="#1877f2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Facebook
+    </button>
+    <button class="tab-btn" data-platform="youtube" onclick="selectPlatform('youtube', this)">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.97C18.88 4 12 4 12 4s-6.88 0-8.59.45A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.45a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58z" stroke="#ff0000" stroke-width="1.8"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" stroke="#ff0000" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      YouTube
+    </button>
+  </div>
+
+  <!-- Recent searches -->
+  <div class="history-row" id="history-row" style="display:none"></div>
+
+  <!-- Search -->
+  <div class="search-area">
+    <div class="search-row">
+      <div class="platform-icon ig" id="plat-icon">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#e1306c" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="#e1306c" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="#e1306c"/></svg>
+      </div>
+      <input class="search-input" id="account-input" type="text" placeholder="@cuenta o URL completa" autocomplete="off" onkeydown="if(event.key==='Enter') runAnalysis()"/>
+      <button class="run-btn" id="run-btn" onclick="runAnalysis()">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 5.5l4 2.5-4 2.5V5.5z" fill="currentColor"/></svg>
+        Analizar
+      </button>
+    </div>
+    <div class="hint" id="hint-text">Ejemplo: @axecaricam · instagram.com/axecaricam</div>
+  </div>
+
+  <div class="status-bar" id="status-bar">
+    <div class="spinner"></div>
+    <span id="status-text">Iniciando...</span>
+  </div>
+  <div class="error-bar" id="error-bar"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="metrics-grid" id="metrics-grid"></div>
+    <div class="insight-card" id="insight-card"></div>
+    <div class="section-label">Posts analizados</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contenido</th>
+            <th>Tipo</th>
+            <th>Likes</th>
+            <th>Comentarios</th>
+            <th>Views</th>
+            <th>Fecha</th>
+            <th>Engagement</th>
+          </tr>
+        </thead>
+        <tbody id="posts-tbody"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="action-btn" onclick="exportCSV()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Exportar CSV
+      </button>
+      <button class="action-btn" onclick="copyMatrix()">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 11V3h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Copiar tabla
+      </button>
+    </div>
+  </div>
+</main>
+
+<!-- API Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>Configurar API de Apify</h2>
+    <p>Tu token se guarda solo en este navegador (localStorage). No se envía a ningún servidor externo.</p>
+    <input type="password" id="modal-token" placeholder="apify_api_XXXX..." />
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-save" onclick="saveToken()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+
+const ACTORS = {
+  instagram: 'apify~instagram-scraper',
+  tiktok: 'clockworks~free-tiktok-scraper',
+  facebook: 'apify~facebook-posts-scraper',
+  youtube: 'streamers~youtube-scraper'
+};
+
+const PLATFORM_CONFIG = {
+  instagram: {
+    hint: 'Ejemplo: @axecaricam · instagram.com/axecaricam',
+    placeholder: '@cuenta o URL de Instagram',
+    iconClass: 'ig',
+    icon: `<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#e1306c" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="#e1306c" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="#e1306c"/></svg>`,
+    toUrl: h => `https://www.instagram.com/${h.replace(/^@/,'').replace(/.*instagram\.com\//,'').replace(/\//,'')}/`,
+    body: url => ({ directUrls: [url], resultsType: 'posts', resultsLimit: 30 }),
+    mapPost: p => ({
+      caption: p.caption || p.alt || '',
+      likes: p.likesCount || 0,
+      comments: p.commentsCount || 0,
+      views: p.videoViewCount || p.videoPlayCount || 0,
+      type: p.type || (p.videoUrl ? 'Reel' : 'Post'),
+      timestamp: p.timestamp || p.takenAtTimestamp,
+      followers: p.ownerFollowersCount || 0,
+      url: p.url || p.shortCode ? `https://instagram.com/p/${p.shortCode}` : ''
+    })
+  },
+  tiktok: {
+    hint: 'Ejemplo: @axe_cam · tiktok.com/@axe_cam',
+    placeholder: '@cuenta o URL de TikTok',
+    iconClass: 'tt',
+    icon: `<svg viewBox="0 0 24 24" fill="none"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="#fe2c55" stroke-width="1.8"/><path d="M10 12a3 3 0 100 6 3 3 0 000-6zm0 0V7.5M13.5 7.5c.5 2 2 3 3.5 3" stroke="#fe2c55" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    toUrl: h => `https://www.tiktok.com/@${h.replace(/^@/,'').replace(/.*tiktok\.com\/@?/,'').replace(/\//,'')}`,
+    body: url => ({ profiles: [url], resultsPerPage: 30 }),
+    mapPost: p => ({
+      caption: p.text || p.desc || '',
+      likes: p.diggCount || p.likes || 0,
+      comments: p.commentCount || p.comments || 0,
+      views: p.playCount || p.views || 0,
+      type: 'Video',
+      timestamp: p.createTime ? new Date(p.createTime * 1000).toISOString() : p.createdAt,
+      followers: p.authorMeta?.fans || 0,
+      url: p.webVideoUrl || ''
+    })
+  },
+  facebook: {
+    hint: 'Ejemplo: facebook.com/axe · @axelatam',
+    placeholder: 'URL de página de Facebook',
+    iconClass: 'fb',
+    icon: `<svg viewBox="0 0 24 24" fill="none"><path d="M18 2H15a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" stroke="#1877f2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    toUrl: h => h.startsWith('http') ? h : `https://www.facebook.com/${h.replace(/^@/,'')}`,
+    body: url => ({ startUrls: [{ url }], maxPosts: 30 }),
+    mapPost: p => ({
+      caption: p.text || p.message || '',
+      likes: p.likes || p.reactions || 0,
+      comments: p.comments || 0,
+      views: p.shares || 0,
+      type: p.type || 'Post',
+      timestamp: p.time || p.createdTime,
+      followers: 0,
+      url: p.url || p.postUrl || ''
+    })
+  },
+  youtube: {
+    hint: 'Ejemplo: youtube.com/@axe · @axeofficial',
+    placeholder: 'URL de canal o @handle de YouTube',
+    iconClass: 'yt',
+    icon: `<svg viewBox="0 0 24 24" fill="none"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.97C18.88 4 12 4 12 4s-6.88 0-8.59.45A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.45a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58z" stroke="#ff0000" stroke-width="1.8"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" stroke="#ff0000" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+    toUrl: h => h.startsWith('http') ? h : `https://www.youtube.com/@${h.replace(/^@/,'')}`,
+    body: url => ({ startUrls: [{ url }], maxResults: 30 }),
+    mapPost: p => ({
+      caption: p.title || p.text || '',
+      likes: p.likes || 0,
+      comments: p.commentsCount || p.comments || 0,
+      views: p.viewCount || p.views || 0,
+      type: 'Video',
+      timestamp: p.date || p.uploadDate,
+      followers: p.channelSubscriberCount || 0,
+      url: p.url || ''
+    })
+  }
+};
+
+let currentPlatform = 'instagram';
+let allData = [];
+
+function getToken() {
+  return localStorage.getItem('apify_token') || '';
+}
+
+function openModal() {
+  document.getElementById('modal-token').value = localStorage.getItem('apify_token') || '';
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+function saveToken() {
+  const t = document.getElementById('modal-token').value.trim();
+  if (t) { localStorage.setItem('apify_token', t); document.getElementById('api-status').textContent = 'API conectada'; }
+  closeModal();
+}
+
+function selectPlatform(platform, btn) {
+  currentPlatform = platform;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const cfg = PLATFORM_CONFIG[platform];
+  document.getElementById('hint-text').textContent = cfg.hint;
+  document.getElementById('account-input').placeholder = cfg.placeholder;
+  const icon = document.getElementById('plat-icon');
+  icon.className = 'platform-icon ' + cfg.iconClass;
+  icon.innerHTML = cfg.icon;
+  document.getElementById('account-input').focus();
+}
+
+function setStatus(msg) {
+  const b = document.getElementById('status-bar');
+  b.classList.add('active');
+  document.getElementById('status-text').textContent = msg;
+}
+function hideStatus() { document.getElementById('status-bar').classList.remove('active'); }
+function showError(msg) {
+  const b = document.getElementById('error-bar');
+  b.textContent = '⚠ ' + msg;
+  b.classList.add('active');
+}
+function hideError() { document.getElementById('error-bar').classList.remove('active'); }
+
+function fmtNum(n) {
+  n = parseInt(n) || 0;
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return n.toLocaleString('es');
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  try { return new Date(typeof ts === 'number' ? ts * 1000 : ts).toLocaleDateString('es', {day:'2-digit',month:'short',year:'2-digit'}); }
+  catch { return '—'; }
+}
+
+async function runAnalysis() {
+  const raw = document.getElementById('account-input').value.trim();
+  if (!raw) return;
+  hideError();
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('run-btn').disabled = true;
+
+  const cfg = PLATFORM_CONFIG[currentPlatform];
+  const url = cfg.toUrl(raw);
+  const token = getToken();
+  if (!token) { showError('Primero configura tu token de Apify — clic en "API conectada" arriba.'); document.getElementById('run-btn').disabled = false; return; }
+  const actorId = ACTORS[currentPlatform];
+
+  try {
+    setStatus('Iniciando actor en Apify...');
+    const runRes = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs?token=${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg.body(url))
+    });
+    if (!runRes.ok) {
+      const e = await runRes.json().catch(() => ({}));
+      throw new Error(e.error?.message || `HTTP ${runRes.status}`);
+    }
+    const runData = await runRes.json();
+    const runId = runData.data.id;
+
+    await waitForRun(runId, token);
+
+    setStatus('Descargando datos...');
+    const datasetId = await getDatasetId(runId, token);
+    const raw_items = await fetchDataset(datasetId, token);
+
+    if (!raw_items || raw_items.length === 0) throw new Error('Sin resultados. Verifica que la cuenta sea pública.');
+
+    const posts = raw_items.map(cfg.mapPost).filter(p => p.likes > 0 || p.views > 0 || p.caption);
+    if (posts.length === 0) throw new Error('No se encontraron posts válidos en los resultados.');
+
+    allData = posts;
+    saveHistory(raw, currentPlatform);
+    hideStatus();
+    renderResults(posts);
+
+  } catch (e) {
+    hideStatus();
+    showError(e.message);
+  }
+  document.getElementById('run-btn').disabled = false;
+}
+
+async function waitForRun(runId, token) {
+  const max = 150; let waited = 0;
+  while (waited < max) {
+    await new Promise(r => setTimeout(r, 5000));
+    waited += 5;
+    const res = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${token}`);
+    const data = await res.json();
+    const s = data.data.status;
+    setStatus(`Scraping en progreso... ${waited}s — ${s}`);
+    if (s === 'SUCCEEDED') return;
+    if (s === 'FAILED' || s === 'ABORTED') throw new Error('El actor falló en Apify. Estado: ' + s);
+  }
+  throw new Error('Timeout: el scraping tardó más de 2.5 minutos.');
+}
+
+async function getDatasetId(runId, token) {
+  const res = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${token}`);
+  const d = await res.json();
+  return d.data.defaultDatasetId;
+}
+
+async function fetchDataset(dsId, token) {
+  const res = await fetch(`https://api.apify.com/v2/datasets/${dsId}/items?token=${token}&limit=50`);
+  return res.json();
+}
+
+function engLevel(rate) {
+  if (rate >= 3) return ['Alta', 'b-hi'];
+  if (rate >= 1) return ['Media', 'b-med'];
+  return ['Baja', 'b-lo'];
+}
+
+function typeClass(t) {
+  const tl = (t||'').toLowerCase();
+  if (tl.includes('reel')) return 'b-reel';
+  if (tl.includes('video')) return 'b-video';
+  return 'b-post';
+}
+
+function renderResults(posts) {
+  const totalLikes = posts.reduce((s,p) => s+p.likes, 0);
+  const totalViews = posts.reduce((s,p) => s+p.views, 0);
+  const avgLikes = Math.round(totalLikes / posts.length);
+  const avgComments = Math.round(posts.reduce((s,p) => s+p.comments, 0) / posts.length);
+  const followers = posts.find(p => p.followers > 0)?.followers || 0;
+  const engRate = followers > 0 ? ((avgLikes + avgComments) / followers * 100).toFixed(2) : '—';
+
+  const typeCount = {};
+  posts.forEach(p => { const t = p.type||'Post'; typeCount[t] = (typeCount[t]||0)+1; });
+  const topType = Object.entries(typeCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
+
+  document.getElementById('metrics-grid').innerHTML = `
+    <div class="metric-card"><div class="m-label">Posts analizados</div><div class="m-value">${posts.length}</div></div>
+    <div class="metric-card"><div class="m-label">Avg likes</div><div class="m-value">${fmtNum(avgLikes)}</div></div>
+    <div class="metric-card"><div class="m-label">Avg comentarios</div><div class="m-value">${fmtNum(avgComments)}</div></div>
+    <div class="metric-card"><div class="m-label">Eng. rate</div><div class="m-value">${engRate}${engRate!=='—'?'<span>%</span>':''}</div></div>
+  `;
+
+  const topPost = posts.reduce((a,b) => (a.likes+a.views) > (b.likes+b.views) ? a : b);
+  const topCap = (topPost.caption||'').substring(0,120) + (topPost.caption?.length > 120 ? '…' : '');
+  const mostViewed = posts.reduce((a,b) => a.views > b.views ? a : b);
+
+  document.getElementById('insight-card').innerHTML = `
+    <div class="i-title">Insights automáticos</div>
+    <p><strong>Top post por interacción:</strong> ${topCap||'Sin caption'} — <strong>${fmtNum(topPost.likes)}</strong> likes</p>
+    ${totalViews > 0 ? `<p><strong>Mayor alcance:</strong> ${fmtNum(mostViewed.views)} views — ${(mostViewed.caption||'').substring(0,80)}</p>` : ''}
+    <p><strong>Formato dominante:</strong> ${topType} (${typeCount[topType]} posts) · <strong>Engagement rate:</strong> ${engRate}${engRate!=='—'?'%':''}</p>
+  `;
+
+  const tbody = document.getElementById('posts-tbody');
+  tbody.innerHTML = '';
+  posts.slice(0, 25).forEach(p => {
+    const followersN = followers || 1;
+    const rate = ((p.likes + p.comments) / followersN * 100);
+    const [elabel, eclass] = engLevel(rate);
+    const engDisplay = followers > 0 ? `<span class="badge ${eclass}">${elabel}</span>` : '—';
+    tbody.innerHTML += `
+      <tr>
+        <td class="caption-cell" title="${(p.caption||'').replace(/"/g,'&quot;')}">${(p.caption||'—').substring(0,55)}${p.caption?.length>55?'…':''}</td>
+        <td><span class="badge ${typeClass(p.type)}">${p.type||'Post'}</span></td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtNum(p.likes)}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtNum(p.comments)}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtNum(p.views)||'—'}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">${fmtDate(p.timestamp)}</td>
+        <td>${engDisplay}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('results').style.display = 'block';
+}
+
+function saveHistory(handle, platform) {
+  let h = JSON.parse(localStorage.getItem('sa_history') || '[]');
+  h = h.filter(x => x.handle !== handle);
+  h.unshift({ handle, platform });
+  if (h.length > 6) h = h.slice(0, 6);
+  localStorage.setItem('sa_history', JSON.stringify(h));
+  renderHistory();
+}
+
+function renderHistory() {
+  const h = JSON.parse(localStorage.getItem('sa_history') || '[]');
+  if (h.length === 0) return;
+  const row = document.getElementById('history-row');
+  const colors = { instagram:'#e1306c', tiktok:'#fe2c55', facebook:'#1877f2', youtube:'#ff0000' };
+  row.style.display = 'flex';
+  row.innerHTML = h.map(x => `
+    <div class="hist-chip" onclick="loadHistory('${x.handle}','${x.platform}')">
+      <div class="plat-dot" style="background:${colors[x.platform]||'#888'}"></div>
+      ${x.handle}
+    </div>`).join('');
+}
+
+function loadHistory(handle, platform) {
+  const btn = document.querySelector(`[data-platform="${platform}"]`);
+  if (btn) selectPlatform(platform, btn);
+  document.getElementById('account-input').value = handle;
+  runAnalysis();
+}
+
+function copyMatrix() {
+  if (!allData.length) return;
+  const rows = [['Contenido','Tipo','Likes','Comentarios','Views','Fecha'].join('\t')];
+  allData.slice(0,25).forEach(p => rows.push([
+    (p.caption||'').replace(/\n/g,' ').substring(0,100),
+    p.type||'Post', p.likes, p.comments, p.views||0, fmtDate(p.timestamp)
+  ].join('\t')));
+  navigator.clipboard.writeText(rows.join('\n')).then(() => {
+    const btn = document.querySelector('.action-btn:nth-child(2)');
+    if (btn) { btn.textContent = '✓ Copiado'; setTimeout(() => btn.innerHTML = `<svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 11V3h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Copiar tabla`, 1500); }
+  });
+}
+
+function exportCSV() {
+  if (!allData.length) return;
+  const rows = [['Contenido','Tipo','Likes','Comentarios','Views','Fecha','URL']];
+  allData.forEach(p => rows.push([
+    `"${(p.caption||'').replace(/"/g,'""').replace(/\n/g,' ').substring(0,200)}"`,
+    p.type||'Post', p.likes, p.comments, p.views||0,
+    fmtDate(p.timestamp),
+    p.url||''
+  ]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = `social-analysis-${Date.now()}.csv`;
+  a.click();
+}
+
+// Init
+renderHistory();
+if (!localStorage.getItem('apify_token')) {
+  // First visit — ask for token
+  setTimeout(() => openModal(), 500);
+} else {
+  document.getElementById('api-status').textContent = 'API conectada';
+}
+</script>
+</body>
+</html>
