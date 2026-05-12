@@ -219,7 +219,7 @@
     </div>
     <div class="api-badge" id="badge-claude" onclick="openModal()">
       <div class="dot" id="dot-claude"></div>
-      <span id="status-claude">Configurar Claude</span>
+      <span id="status-claude">Configurar Gemini</span>
     </div>
   </div>
 </header>
@@ -266,7 +266,7 @@
   </div>
 
   <div class="status-bar" id="status-bar"><div class="spinner"></div><span id="status-text">Iniciando...</span></div>
-  <div class="analyzing-bar" id="analyzing-bar"><div class="spinner" style="border-top-color:var(--accent)"></div><span id="analyzing-text">Claude analizando la marca...</span></div>
+  <div class="analyzing-bar" id="analyzing-bar"><div class="spinner" style="border-top-color:var(--accent)"></div><span id="analyzing-text">Gemini analizando la marca...</span></div>
   <div class="error-bar" id="error-bar"></div>
 
   <div id="results">
@@ -313,8 +313,8 @@
       <input type="password" id="modal-apify" placeholder="apify_api_XXXX..."/>
     </div>
     <div class="modal-field">
-      <label>Anthropic API Key</label>
-      <input type="password" id="modal-claude" placeholder="sk-ant-api03-XXXX..."/>
+      <label>Gemini API Key</label>
+      <input type="password" id="modal-claude" placeholder="AIzaSy..."/>
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
@@ -383,7 +383,7 @@ function updateBadges() {
   document.getElementById('dot-apify').className = 'dot' + (hasApify ? ' on' : '');
   document.getElementById('status-apify').textContent = hasApify ? 'Apify ✓' : 'Configurar Apify';
   document.getElementById('dot-claude').className = 'dot' + (hasClaude ? ' on' : '');
-  document.getElementById('status-claude').textContent = hasClaude ? 'Claude ✓' : 'Configurar Claude';
+  document.getElementById('status-claude').textContent = hasClaude ? 'Gemini ✓' : 'Configurar Gemini';
 }
 
 function openModal() {
@@ -478,7 +478,7 @@ async function runAnalysis() {
 
     // Qualitative analysis with Claude
     if (getClaudeKey()) {
-      setAnalyzing('Claude analizando tono de voz y posicionamiento...');
+      setAnalyzing('Gemini analizando tono de voz y posicionamiento...');
       await runClaudeAnalysis(posts, raw);
       hideAnalyzing();
     }
@@ -556,33 +556,28 @@ Basándote SOLO en los datos reales proporcionados, genera un análisis de marca
 
 Responde SOLO con el JSON, sin texto adicional.`;
 
+
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const geminiKey = getClaudeKey();
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': claudeKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 1200 }
       })
     });
-
     if (!res.ok) {
       const errData = await res.json().catch(()=>({}));
-      throw new Error(`Claude API ${res.status}: ${errData.error?.message || JSON.stringify(errData)}`);
+      throw new Error('Gemini API ' + res.status + ': ' + (errData.error?.message || JSON.stringify(errData)));
     }
     const data = await res.json();
-    const text = data.content[0].text;
+    const text = data.candidates[0].content.parts[0].text;
     const clean = text.replace(/```json|```/g,'').trim();
     const report = JSON.parse(clean);
     renderReport(report);
   } catch(e) {
-    showError('Error en análisis Claude: ' + e.message);
+    showError('Error en análisis IA: ' + e.message);
   }
 }
 
